@@ -1,0 +1,185 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String    @id @default(uuid())
+  name            String
+  email           String    @unique
+  passwordHash    String
+  role            String    @default("STUDENT") // STUDENT or ADMIN
+  institutionType String?   @default("SCHOOL") // SCHOOL, COLLEGE, COMPETITIVE
+  class           String?   @default("Class 10")
+  board           String?   @default("CBSE")
+  degreeMajor     String?   // e.g. "B.Tech Computer Science & Engineering", "BCA", etc.
+  universityName  String?   // e.g. "Delhi University", "Anna University", etc.
+  semester        Int?      // e.g. 1 to 8
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt @default(now())
+
+  attempts          Attempt[]
+  createdQuestions  Question[]          @relation("UserCreatedQuestions")
+  extractedQuestions ExtractedQuestion[] @relation("UserExtractedQuestions")
+}
+
+model Subject {
+  id              String    @id @default(uuid())
+  name            String
+  class           String    // e.g. "Class 10", "UG", "PG", "GATE", "CAT", "CET", "NExT"
+  board           String    @default("CBSE") // e.g. "CBSE", "UGC", "AICTE", "NMC", "IIM", "IIT"
+  tier            String    @default("SCHOOL") // "SCHOOL", "COLLEGE", "COMPETITIVE"
+  degreeMajor     String?   // e.g. "B.Tech CSE", "BCA", "B.Sc Physics", "MBBS", "MBA"
+  syllabusType    String    @default("STANDARD") // "STANDARD", "UGC_MODEL", "CUSTOM_UNIVERSITY", "PYQ_OFFICIAL"
+  universityName  String?   // e.g. "Delhi University", "Anna University", "VTU", "Mumbai University"
+  semester        Int?      // e.g. 1, 2, 3... 8
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt @default(now())
+
+  chapters        Chapter[]
+  tests           Test[]
+}
+
+model Chapter {
+  id        String    @id @default(uuid())
+  name      String
+  subjectId String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt @default(now())
+
+  subject   Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  topics    Topic[]
+}
+
+model Topic {
+  id        String     @id @default(uuid())
+  name      String
+  chapterId String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt @default(now())
+
+  chapter   Chapter    @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  questions Question[]
+  tests     Test[]
+}
+
+model Question {
+  id              String         @id @default(uuid())
+  questionText    String
+  questionType    String         @default("MCQ") // MCQ, SHORT_2_MARK, LONG_5_MARK, NAT
+  optionA         String?
+  optionB         String?
+  optionC         String?
+  optionD         String?
+  correctAnswer   Int?           // 0: optionA, 1: optionB, 2: optionC, 3: optionD
+  expectedAnswer  String?        // For 2-mark and 5-mark short/long descriptive questions or NAT values
+  explanation     String?
+  markingScheme   String?        // Evaluation guidelines
+  difficulty      String         @default("Medium") // Easy, Medium, Hard
+  marks           Int            @default(1) // 1 for MCQ, 2 for SHORT_2_MARK, 5 for LONG_5_MARK
+  topicId         String
+  topic           Topic          @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  source          String         @default("AI") // AI, MANUAL, CAMERA, WEB, QUESTION_BANK, PYQ, PREDICTED_FUTURE
+  sourceUrl       String?
+  sourceType      String         @default("AI") // ADMIN, AI, CAMERA_EXTRACTION, WEB_RESEARCH, QUESTION_BANK, PYQ, PROBABLE_PREDICTION
+  status          String         @default("PENDING") // PENDING, APPROVED, REJECTED
+  
+  // Competitive & Paper provenance
+  examName        String?        // "GATE", "NExT", "CAT", "CET", "UGC_NET", "CBSE"
+  paperYear       Int?           // e.g. 2024, 2023, 2022
+  paperSession    String?        // e.g. "Shift 1", "Slot 2", "Morning Session"
+  isProbableFuture Boolean       @default(false) // True for predicted future probable questions
+  predictionRationale String?    // AI reasoning on why this question is probable
+  
+  createdById     String?
+  createdBy       User?          @relation("UserCreatedQuestions", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt @default(now())
+
+  testQuestions  TestQuestion[]
+  answers        AttemptAnswer[]
+}
+
+model Test {
+  id             String         @id @default(uuid())
+  title          String
+  subjectId      String
+  subject        Subject        @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  topicId        String
+  topic          Topic          @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  totalQuestions Int
+  totalMarks     Int            @default(10)
+  duration       Int            // Duration in minutes
+  createdAt      DateTime       @default(now())
+
+  testQuestions  TestQuestion[]
+  attempts       Attempt[]
+}
+
+model TestQuestion {
+  id         String   @id @default(uuid())
+  testId     String
+  test       Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  marks      Int      @default(1)
+  order      Int      @default(1)
+}
+
+model Attempt {
+  id             String          @id @default(uuid())
+  userId         String
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  testId         String
+  test           Test            @relation(fields: [testId], references: [id], onDelete: Cascade)
+  score          Float           // Total marks scored (e.g. 8.5)
+  totalMarks     Float           @default(10.0) // Total maximum marks (e.g. 10.0)
+  percentage     Float           @default(0.0)  // Percentage (e.g. 85.0)
+  correctAnswers Int
+  totalQuestions Int
+  timeTaken      Int             // Time taken in seconds
+  createdAt      DateTime        @default(now())
+
+  answers        AttemptAnswer[]
+}
+
+model AttemptAnswer {
+  id             String   @id @default(uuid())
+  attemptId      String
+  attempt        Attempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  questionId     String
+  question       Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  selectedAnswer Int?     // For MCQ (0..3)
+  textAnswer     String?  // For SHORT_2_MARK and LONG_5_MARK
+  awardedMarks   Float    @default(0.0)
+  maxMarks       Float    @default(1.0)
+  isCorrect      Boolean  @default(false)
+  evaluationType String   @default("OBJECTIVE") // OBJECTIVE, AI_ASSISTED, MANUAL
+  feedback       String?  // AI or manual feedback
+}
+
+model ExtractedQuestion {
+  id               String   @id @default(uuid())
+  imageReference   String?
+  rawExtractedText String?
+  status           String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdById      String?
+  createdBy        User?    @relation("UserExtractedQuestions", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt        DateTime @default(now())
+}
+
+model CurriculumSource {
+  id          String   @id @default(uuid())
+  board       String   @default("CBSE")
+  class       String   @default("Class 10")
+  subject     String
+  sourceUrl   String
+  sourceName  String
+  retrievedAt DateTime @default(now())
+  content     String
+  status      String   @default("VERIFIED") // PENDING, VERIFIED, ARCHIVED
+}
