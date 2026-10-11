@@ -297,6 +297,10 @@ async function getFallbackQuestionsFromDatabase(
       explanation: q.explanation || 'Approved curriculum question.',
       difficulty: q.difficulty,
       marks: q.marks,
+      isProbableFuture: Boolean((q as any).isProbableFuture),
+      predictionRationale: (q as any).predictionRationale || null,
+      examName: (q as any).examName || null,
+      paperYear: (q as any).paperYear || null,
     }));
 
     return {

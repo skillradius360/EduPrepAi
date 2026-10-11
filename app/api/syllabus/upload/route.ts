@@ -131,6 +131,8 @@ export async function POST(req: Request) {
         });
       }
 
+      if (!subject) continue;
+
       // Add chapters & topics
       for (const ch of item.chapters) {
         let chapter = await db.chapter.findFirst({

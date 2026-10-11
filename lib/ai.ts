@@ -356,6 +356,10 @@ async function getFallbackQuestions(
       explanation: q.explanation || 'Approved curriculum question.',
       difficulty: q.difficulty,
       marks: q.marks,
+      isProbableFuture: Boolean((q as any).isProbableFuture),
+      predictionRationale: (q as any).predictionRationale || undefined,
+      examName: (q as any).examName || undefined,
+      paperYear: (q as any).paperYear || undefined,
     }));
 
     return {

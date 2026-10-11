@@ -30,6 +30,8 @@ export default function MockTestPage({ params }: { params: { id: string } }) {
   const [textAnswers, setTextAnswers] = useState<Record<string, string>>({});
   const [timeLeftSeconds, setTimeLeftSeconds] = useState(600);
   const [initialTime, setInitialTime] = useState(600);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmActionType, setConfirmActionType] = useState<'SUBMIT' | 'QUIT'>('SUBMIT');
 
   useEffect(() => {
     async function loadTest() {
@@ -109,6 +111,7 @@ export default function MockTestPage({ params }: { params: { id: string } }) {
 
   const handleSubmitTest = async () => {
     if (!test || submitting) return;
+    setShowConfirmModal(false);
     setSubmitting(true);
 
     const answersArray = test.testQuestions.map((tq) => ({
@@ -133,7 +136,8 @@ export default function MockTestPage({ params }: { params: { id: string } }) {
       const data = await res.json();
 
       if (data.success && data.attemptId) {
-        router.replace(`/analytics?attempt=${data.attemptId}&t=${Date.now()}`);
+        // Directly display score of the exam
+        router.replace(`/results/${data.attemptId}`);
       } else {
         setError(data.error || 'Failed to submit test');
         setSubmitting(false);
@@ -145,10 +149,13 @@ export default function MockTestPage({ params }: { params: { id: string } }) {
   };
 
   const handleExitExam = () => {
-    const shouldEnd = window.confirm('If you exit now, the exam will end and your current answers will be submitted.');
-    if (shouldEnd) {
-      handleSubmitTest();
-    }
+    setConfirmActionType('QUIT');
+    setShowConfirmModal(true);
+  };
+
+  const handleRequestSubmit = () => {
+    setConfirmActionType('SUBMIT');
+    setShowConfirmModal(true);
   };
 
   const formatTime = (seconds: number) => {
@@ -286,7 +293,7 @@ export default function MockTestPage({ params }: { params: { id: string } }) {
           </div>
 
           <button
-            onClick={handleSubmitTest}
+            onClick={handleRequestSubmit}
             disabled={submitting}
             className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/25 disabled:opacity-50"
           >
@@ -304,6 +311,61 @@ export default function MockTestPage({ params }: { params: { id: string } }) {
           </button>
         </div>
       </main>
+
+      {/* CENTER SECONDARY CONFIRMATION MODAL */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-150">
+          <div className="w-full max-w-md bg-slate-900/90 border border-slate-700/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl space-y-5 text-center ring-1 ring-white/10 animate-in zoom-in-95 duration-150">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400 mx-auto flex items-center justify-center shadow-lg shadow-amber-500/10">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+
+            <div>
+              <h3 className="text-lg font-bold text-white">
+                {confirmActionType === 'QUIT' ? 'Are you sure you want to quit?' : 'Ready to submit your exam?'}
+              </h3>
+              <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+                {confirmActionType === 'QUIT'
+                  ? 'Exiting will finish the exam immediately and calculate your final score based on all answered questions.'
+                  : 'You are about to finish the exam. Your answers will be submitted for scoring and immediate results evaluation.'}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowConfirmModal(false)}
+                className="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-xs font-bold transition-all"
+              >
+                Continue Exam
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSubmitTest}
+                disabled={submitting}
+                className={`py-2.5 px-4 rounded-xl text-white text-xs font-bold transition-all shadow-lg flex items-center justify-center gap-1.5 ${
+                  confirmActionType === 'QUIT'
+                    ? 'bg-red-600 hover:bg-red-500 shadow-red-600/25'
+                    : 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/25'
+                }`}
+              >
+                {confirmActionType === 'QUIT' ? (
+                  <>
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>Yes, Quit & Score</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Yes, Submit Now</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
