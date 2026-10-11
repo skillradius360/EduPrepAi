@@ -107,6 +107,7 @@ export default function Navbar({ user, onToggleSidebar, isSidebarOpen = true }: 
   const isStudent = !!resolvedUser && !isAdmin;
 
   return (
+    <>
     <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800/90 text-white select-none">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
         {/* Left: Retractable Sidebar Toggle Button + Brand */}
@@ -362,107 +363,92 @@ export default function Navbar({ user, onToggleSidebar, isSidebarOpen = true }: 
           )}
         </div>
       </div>
+    </header>
 
-      {/* MOBILE PHONE SIDE HAMBURGER DRAWER (Holds all navigation options when on phone) */}
+      {/* MOBILE DRAWER BACKDROP */}
       {mobileMenuOpen && (
         <div
-          ref={mobileMenuRef}
-          className="md:hidden border-b border-slate-800 bg-slate-900/95 backdrop-blur-xl px-4 py-4 space-y-3 shadow-2xl animate-in slide-in-from-top-2 duration-150"
-        >
-          <div className="text-xs font-bold uppercase tracking-wider text-slate-500 px-2 pb-1 border-b border-slate-800/80 flex items-center justify-between">
-            <span>Navigation Menu</span>
-            <span className="text-[10px] text-sky-400 font-medium">EduPrep Mobile</span>
-          </div>
-
-          <nav className="space-y-1">
-            {isStudent && (
-              <>
-                <Link
-                  href="/dashboard"
-                  prefetch={true}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                    pathname === '/dashboard'
-                      ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30'
-                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                  }`}
-                >
-                  <BookOpen className="w-4 h-4 text-sky-400" />
-                  <span>Dashboard</span>
-                </Link>
-                <Link
-                  href="/practice"
-                  prefetch={true}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                    pathname === '/practice'
-                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                  }`}
-                >
-                  <Sparkles className="w-4 h-4 text-amber-400" />
-                  <span>AI Practice Mode</span>
-                </Link>
-                <Link
-                  href="/analytics"
-                  prefetch={true}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                    pathname === '/analytics'
-                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                  }`}
-                >
-                  <BarChart3 className="w-4 h-4 text-emerald-400" />
-                  <span>Performance Analytics</span>
-                </Link>
-                <Link
-                  href="/recommendations"
-                  prefetch={true}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                    pathname === '/recommendations'
-                      ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                  }`}
-                >
-                  <Lightbulb className="w-4 h-4 text-purple-400" />
-                  <span>Personalized Advice</span>
-                </Link>
-                <Link
-                  href="/profile"
-                  prefetch={true}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                    pathname === '/profile'
-                      ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30'
-                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                  }`}
-                >
-                  <User className="w-4 h-4 text-sky-400" />
-                  <span>Profile & Syllabus Tree</span>
-                </Link>
-              </>
-            )}
-
-            {isAdmin && (
-              <Link
-                href="/admin"
-                prefetch={true}
-                onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                  pathname === '/admin'
-                    ? 'bg-indigo-500/25 text-indigo-300 border border-indigo-500/30'
-                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                }`}
-              >
-                <Shield className="w-4 h-4 text-indigo-400" />
-                <span>Admin Control Center</span>
-              </Link>
-            )}
-          </nav>
-        </div>
+          className="md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+          onClick={() => setMobileMenuOpen(false)}
+          aria-hidden="true"
+        />
       )}
-    </header>
+
+      {/* MOBILE LEFT-SIDE SLIDE-IN DRAWER */}
+      <div
+        ref={mobileMenuRef}
+        className={`md:hidden fixed top-0 left-0 z-50 h-full w-72 max-w-[85vw] bg-slate-900 border-r border-slate-800 shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${
+          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        {/* Drawer Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800 flex-shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-md shadow-sky-500/20">
+              <Sparkles className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <p className="font-extrabold text-sm text-white tracking-tight">EduPrep AI</p>
+              <p className="text-[10px] text-slate-400">Smart Exam Preparation</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(false)}
+            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            aria-label="Close menu"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Drawer Navigation Links */}
+        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+          <p className="px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">
+            {isAdmin ? 'Admin Menu' : 'Navigation'}
+          </p>
+
+          {isStudent && (
+            <>
+              <Link href="/dashboard" prefetch={true} onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all ${pathname === '/dashboard' ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}>
+                <BookOpen className="w-4 h-4 text-sky-400 flex-shrink-0" /><span>Dashboard</span>
+              </Link>
+              <Link href="/practice" prefetch={true} onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all ${pathname === '/practice' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}>
+                <Sparkles className="w-4 h-4 text-amber-400 flex-shrink-0" /><span>AI Practice Mode</span>
+              </Link>
+              <Link href="/analytics" prefetch={true} onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all ${pathname === '/analytics' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}>
+                <BarChart3 className="w-4 h-4 text-emerald-400 flex-shrink-0" /><span>Performance Analytics</span>
+              </Link>
+              <Link href="/recommendations" prefetch={true} onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all ${pathname === '/recommendations' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}>
+                <Lightbulb className="w-4 h-4 text-purple-400 flex-shrink-0" /><span>Personalized Advice</span>
+              </Link>
+              <Link href="/profile" prefetch={true} onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all ${pathname === '/profile' ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}>
+                <User className="w-4 h-4 text-sky-400 flex-shrink-0" /><span>Profile &amp; Syllabus</span>
+              </Link>
+            </>
+          )}
+
+          {isAdmin && (
+            <Link href="/admin" prefetch={true} onClick={() => setMobileMenuOpen(false)}
+              className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all ${pathname === '/admin' ? 'bg-indigo-500/25 text-indigo-300 border border-indigo-500/30' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}>
+              <Shield className="w-4 h-4 text-indigo-400 flex-shrink-0" /><span>Admin Control Center</span>
+            </Link>
+          )}
+        </nav>
+
+        {/* Drawer Footer — Logout */}
+        <div className="px-3 py-4 border-t border-slate-800 flex-shrink-0">
+          <button type="button" onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold text-red-400 hover:text-red-300 hover:bg-red-500/15 transition-colors">
+            <LogOut className="w-4 h-4 flex-shrink-0" /><span>Log Out</span>
+          </button>
+        </div>
+      </div>
+    </>
   );
 }
