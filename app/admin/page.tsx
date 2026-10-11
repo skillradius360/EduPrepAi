@@ -6,7 +6,7 @@ import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import ProgressCard from '@/components/ProgressCard';
 import AdminManualQuestionForm from '@/components/AdminManualQuestionForm';
-import AdminCameraExtraction from '@/components/AdminCameraExtraction';
+// import AdminCameraExtraction from '@/components/AdminCameraExtraction'; // hidden
 import AdminSyllabusResearch from '@/components/AdminSyllabusResearch';
 import {
   Shield,
@@ -20,7 +20,6 @@ import {
   Plus,
   Layers,
   Sparkles,
-  Camera,
   Globe,
   Filter,
   Award,
@@ -77,7 +76,7 @@ interface SubjectItem {
 
 export default function AdminDashboardPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'AI_REVIEW' | 'MANUAL_ADD' | 'CAMERA_EXTRACT' | 'SYLLABUS' | 'QUESTION_BANK' | 'CURRICULUM'>('AI_REVIEW');
+  const [activeTab, setActiveTab] = useState<'AI_REVIEW' | 'MANUAL_ADD' | 'SYLLABUS' | 'QUESTION_BANK' | 'CURRICULUM'>('AI_REVIEW');
   const [statusFilter, setStatusFilter] = useState<string>('PENDING');
   const [typeFilter, setTypeFilter] = useState<string>('ALL');
   const [questionSearch, setQuestionSearch] = useState('');
@@ -295,15 +294,7 @@ export default function AdminDashboardPage() {
                 Add Question (MCQ / 2M / 5M / NAT)
               </button>
 
-              <button
-                onClick={() => setActiveTab('CAMERA_EXTRACT')}
-                className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap flex-shrink-0 ${
-                  activeTab === 'CAMERA_EXTRACT' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                <Camera className="w-4 h-4 text-amber-400" />
-                Camera Extraction
-              </button>
+              {/* Camera Extraction tab hidden — uncomment to re-enable */}
 
               <button
                 onClick={() => setActiveTab('SYLLABUS')}
@@ -479,10 +470,11 @@ export default function AdminDashboardPage() {
             <AdminManualQuestionForm onCreated={loadData} />
           )}
 
-          {/* TAB 3: CAMERA EXTRACTION */}
-          {activeTab === 'CAMERA_EXTRACT' && (
+          {/* TAB 3: CAMERA EXTRACTION — hidden, uncomment to re-enable */}
+          {/* {activeTab === 'CAMERA_EXTRACT' && (
             <AdminCameraExtraction onApproved={loadData} />
-          )}
+          )} */}
+
 
           {/* TAB 4: SYLLABUS RESEARCH */}
           {activeTab === 'SYLLABUS' && (
