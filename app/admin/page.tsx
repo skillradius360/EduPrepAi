@@ -267,7 +267,7 @@ export default function AdminDashboardPage() {
                   EduPrep AI Admin Control Center
                 </h1>
                 <p className="text-xs text-slate-400 mt-1">
-                  Human-in-the-Loop Quality Control, Manual Question Builder, Camera Extraction, and Syllabus Sources.
+                  Human-in-the-Loop Quality Control, Manual Question Builder, and Syllabus Sources.
                 </p>
               </div>
             </div>
