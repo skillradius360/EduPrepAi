@@ -80,6 +80,8 @@ export default function AdminDashboardPage() {
   const [statusFilter, setStatusFilter] = useState<string>('PENDING');
   const [typeFilter, setTypeFilter] = useState<string>('ALL');
   const [questionSearch, setQuestionSearch] = useState('');
+  const [aiSearchTerm, setAiSearchTerm] = useState('');
+  const [curriculumSearch, setCurriculumSearch] = useState('');
 
   const [stats, setStats] = useState<any>(null);
   const [questions, setQuestions] = useState<QuestionItem[]>([]);
@@ -370,36 +372,72 @@ export default function AdminDashboardPage() {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-xl p-1">
-                  {['PENDING', 'APPROVED', 'REJECTED'].map((st) => (
-                    <button
-                      key={st}
-                      onClick={() => setStatusFilter(st)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                        statusFilter === st
-                          ? st === 'PENDING'
-                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                            : st === 'APPROVED'
-                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                            : 'bg-red-500/20 text-red-300 border border-red-500/30'
-                          : 'text-slate-400 hover:text-white'
-                      }`}
-                    >
-                      {st}
-                    </button>
-                  ))}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={aiSearchTerm}
+                      onChange={(e) => setAiSearchTerm(e.target.value)}
+                      placeholder="Search queue questions..."
+                      className="w-full sm:w-60 bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-xl p-1">
+                    {['PENDING', 'APPROVED', 'REJECTED'].map((st) => (
+                      <button
+                        key={st}
+                        onClick={() => setStatusFilter(st)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                          statusFilter === st
+                            ? st === 'PENDING'
+                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                              : st === 'APPROVED'
+                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                              : 'bg-red-500/20 text-red-300 border border-red-500/30'
+                            : 'text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        {st}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
               {loading ? (
                 <div className="p-8 text-center text-slate-400">Loading AI questions queue...</div>
-              ) : questions.length === 0 ? (
-                <div className="p-12 text-center text-slate-500 text-sm space-y-2">
-                  <p>No questions found under status &quot;{statusFilter}&quot;.</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {questions.map((q) => (
+              ) : (() => {
+                const filteredAiQuestions = questions.filter((q) => {
+                  if (!aiSearchTerm.trim()) return true;
+                  const term = aiSearchTerm.toLowerCase();
+                  return (
+                    q.questionText?.toLowerCase().includes(term) ||
+                    q.topic?.name?.toLowerCase().includes(term) ||
+                    q.topic?.chapter?.name?.toLowerCase().includes(term) ||
+                    q.topic?.chapter?.subject?.name?.toLowerCase().includes(term) ||
+                    q.source?.toLowerCase().includes(term) ||
+                    q.questionType?.toLowerCase().includes(term) ||
+                    q.difficulty?.toLowerCase().includes(term)
+                  );
+                });
+
+                if (filteredAiQuestions.length === 0) {
+                  return (
+                    <div className="p-12 text-center text-slate-500 text-sm space-y-2">
+                      <p>
+                        {aiSearchTerm
+                          ? `No questions matching "${aiSearchTerm}" under status "${statusFilter}".`
+                          : `No questions found under status "${statusFilter}".`}
+                      </p>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="space-y-4">
+                    {filteredAiQuestions.map((q) => (
                     <div key={q.id} className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
                         <div>
@@ -477,13 +515,20 @@ export default function AdminDashboardPage() {
                     </div>
                   ))}
                 </div>
-              )}
+              );
+            })()}
             </div>
           )}
 
           {/* TAB 2: MANUAL QUESTION CREATION */}
           {activeTab === 'MANUAL_ADD' && (
-            <AdminManualQuestionForm onCreated={loadData} />
+            <AdminManualQuestionForm
+              onCreated={() => {
+                loadData();
+                setStatusFilter('PENDING');
+                setActiveTab('AI_REVIEW');
+              }}
+            />
           )}
 
           {/* TAB 3: CAMERA EXTRACTION — hidden, uncomment to re-enable */}
@@ -779,15 +824,57 @@ export default function AdminDashboardPage() {
               </div>
 
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
-                <div className="border-b border-slate-800 pb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
                   <h2 className="text-lg font-bold text-white flex items-center gap-2">
                     <BookOpen className="w-5 h-5 text-sky-400" />
-                    Existing Curriculum Tree
+                    <span>Existing Curriculum Tree</span>
+                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 font-semibold">
+                      {curriculum.length} Subjects
+                    </span>
                   </h2>
+
+                  <div className="relative w-full sm:w-72">
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={curriculumSearch}
+                      onChange={(e) => setCurriculumSearch(e.target.value)}
+                      placeholder="Search subjects, chapters, topics..."
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-6">
-                  {curriculum.map((sub) => (
+                {(() => {
+                  const filteredCurriculum = curriculum.filter((sub) => {
+                    if (!curriculumSearch.trim()) return true;
+                    const term = curriculumSearch.toLowerCase();
+                    const matchSub =
+                      sub.name.toLowerCase().includes(term) ||
+                      (sub.class && sub.class.toLowerCase().includes(term)) ||
+                      (sub.board && sub.board.toLowerCase().includes(term)) ||
+                      (sub.degreeMajor && sub.degreeMajor.toLowerCase().includes(term));
+                    const matchChapter = sub.chapters.some(
+                      (c) =>
+                        c.name.toLowerCase().includes(term) ||
+                        c.topics.some((t) => t.name.toLowerCase().includes(term))
+                    );
+                    return matchSub || matchChapter;
+                  });
+
+                  if (filteredCurriculum.length === 0) {
+                    return (
+                      <div className="p-8 text-center text-slate-500 text-sm">
+                        {curriculumSearch
+                          ? `No subjects matching "${curriculumSearch}".`
+                          : 'No curriculum subjects found. Add a subject above to get started.'}
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="space-y-6">
+                      {filteredCurriculum.map((sub) => (
                     <div key={sub.id} className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
                       <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                         <h3 className="font-bold text-sky-400 text-base flex items-center gap-2">
@@ -847,6 +934,8 @@ export default function AdminDashboardPage() {
                     </div>
                   ))}
                 </div>
+              );
+            })()}
               </div>
             </div>
           )}

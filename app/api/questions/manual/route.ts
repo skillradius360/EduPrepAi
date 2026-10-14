@@ -50,7 +50,7 @@ export async function POST(req: Request) {
         marks: data.marks ?? (data.questionType === 'MCQ' ? 1 : data.questionType === 'SHORT_2_MARK' ? 2 : data.questionType === 'NAT' ? 2 : 5),
         source: data.paperYear ? 'PYQ' : data.isProbableFuture ? 'PREDICTED_FUTURE' : 'MANUAL',
         sourceType: 'ADMIN',
-        status: 'APPROVED', // Admin-created questions saved directly as APPROVED
+        status: 'PENDING', // Saved as PENDING so it enters the question queue for review
         examName: data.examName || null,
         paperYear: data.paperYear || null,
         paperSession: data.paperSession || null,

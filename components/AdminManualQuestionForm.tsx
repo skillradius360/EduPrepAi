@@ -199,7 +199,7 @@ export default function AdminManualQuestionForm({ onCreated }: { onCreated?: () 
         return;
       }
 
-      setMessage(`✅ ${questionType} question created and added to approved Question Bank!`);
+      setMessage(`✅ ${questionType} question created and added to the Question Review Queue!`);
       setQuestionText('');
       setOptionA('');
       setOptionB('');

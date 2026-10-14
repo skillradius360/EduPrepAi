@@ -126,24 +126,33 @@ export default function ProfileSettingsPage() {
         const currData = await currRes.json();
 
         if (profData.user) {
-          setProfile(profData.user);
-          setName(profData.user.name || '');
-          setInstitutionType(profData.user.institutionType || 'COLLEGE');
-          setUserClass(profData.user.class || '');
-          setBoard(profData.user.board || '');
-          setDegreeMajor(profData.user.degreeMajor || '');
-          setUniversityName(profData.user.universityName || '');
-          setSemester(profData.user.semester || 1);
-          setUploadSemester(profData.user.semester || 1);
+          const user = profData.user;
+          const inst = user.institutionType || 'COLLEGE';
+          let safeBoard = user.board || '';
+          if (inst === 'SCHOOL' && (!safeBoard || safeBoard === 'GATE CS' || safeBoard === 'National' || safeBoard === 'UGC')) {
+            safeBoard = 'CBSE';
+          }
+          user.board = safeBoard;
+          setProfile(user);
+          setName(user.name || '');
+          setInstitutionType(inst);
+          setUserClass(user.class || '');
+          setBoard(safeBoard);
+          setDegreeMajor(user.degreeMajor || '');
+          setUniversityName(user.universityName || '');
+          setSemester(user.semester || 1);
+          setUploadSemester(user.semester || 1);
         }
 
         if (optData.options) {
           setOptions(optData.options);
         }
 
-        if (currData.subjects && currData.subjects.length > 0) {
+        if (currData.subjects) {
           setCurriculumSubjects(currData.subjects);
-          setExpandedSubjectId(currData.subjects[0].id);
+          if (currData.subjects.length > 0) {
+            setExpandedSubjectId(currData.subjects[0].id);
+          }
         }
       } catch (err) {
         console.error('Failed to load profile data', err);
@@ -191,6 +200,9 @@ export default function ProfileSettingsPage() {
       const currData = await currRes.json();
       if (currData.subjects) {
         setCurriculumSubjects(currData.subjects);
+        if (currData.subjects.length > 0) {
+          setExpandedSubjectId(currData.subjects[0].id);
+        }
       }
     } catch (err) {
       setError('Connection error while updating profile.');
@@ -370,7 +382,15 @@ export default function ProfileSettingsPage() {
                     </div>
                     <div className="bg-slate-950/70 border border-slate-800/80 rounded-xl p-3.5">
                       <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Education Board</span>
-                      <span className="text-sm font-bold text-emerald-400 mt-1 block">{profile?.board || 'Not specified'}</span>
+                      <span className="text-sm font-bold text-emerald-400 mt-1 block">
+                        {(() => {
+                          const b = profile?.board || 'CBSE';
+                          if (b === 'GATE CS' || b === 'National' || b === 'UGC') return 'Central Board of Secondary Education (CBSE)';
+                          if (b.toUpperCase() === 'CBSE') return 'Central Board of Secondary Education (CBSE)';
+                          if (b.toUpperCase() === 'ICSE') return 'ICSE (CISCE Board)';
+                          return b;
+                        })()}
+                      </span>
                     </div>
                   </div>
                 )}
@@ -470,7 +490,26 @@ export default function ProfileSettingsPage() {
                     </label>
                     <select
                       value={institutionType}
-                      onChange={(e) => setInstitutionType(e.target.value)}
+                      onChange={(e) => {
+                        const newType = e.target.value;
+                        setInstitutionType(newType);
+                        if (newType === 'SCHOOL') {
+                          if (!board || board === 'GATE CS' || board === 'National' || board === 'UGC') {
+                            setBoard(options.schoolBoards[0] || 'CBSE');
+                          }
+                          if (!userClass) {
+                            setUserClass(options.schoolClasses[0] || 'Class 10');
+                          }
+                        } else if (newType === 'COLLEGE') {
+                          if (!degreeMajor) {
+                            setDegreeMajor(options.collegeMajors[0] || 'B.Tech Computer Science & Engineering');
+                          }
+                        } else if (newType === 'COMPETITIVE') {
+                          if (!board || board === 'CBSE' || board === 'ICSE') {
+                            setBoard(options.competitiveExams[0] || 'GATE CS');
+                          }
+                        }
+                      }}
                       className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
                     >
                       <option value="SCHOOL">School (K-12)</option>

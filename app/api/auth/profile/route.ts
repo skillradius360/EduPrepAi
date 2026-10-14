@@ -22,13 +22,21 @@ export async function PATCH(req: Request) {
     const body = await req.json();
     const { name, institutionType, userClass, board, degreeMajor, universityName, semester } = body;
 
+    const finalInst = institutionType !== undefined ? institutionType : user.institutionType;
+    let finalBoard = board !== undefined ? board : user.board;
+    if (finalInst === 'SCHOOL') {
+      if (!finalBoard || finalBoard === 'GATE CS' || finalBoard === 'National' || finalBoard === 'UGC' || finalBoard.includes('GATE') || finalBoard.includes('CAT')) {
+        finalBoard = 'CBSE';
+      }
+    }
+
     const updated = await db.user.update({
       where: { id: user.id },
       data: {
         name: name !== undefined ? name : user.name,
-        institutionType: institutionType !== undefined ? institutionType : user.institutionType,
+        institutionType: finalInst,
         class: userClass !== undefined ? userClass : user.class,
-        board: board !== undefined ? board : user.board,
+        board: finalBoard,
         degreeMajor: degreeMajor !== undefined ? degreeMajor : user.degreeMajor,
         universityName: universityName !== undefined ? universityName : user.universityName,
         semester: semester !== undefined ? (semester ? Number(semester) : null) : user.semester,

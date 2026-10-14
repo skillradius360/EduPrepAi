@@ -14,8 +14,6 @@ import {
   ChevronDown,
   Layers,
   Settings,
-  PanelLeftClose,
-  PanelLeftOpen,
   Menu,
   X
 } from 'lucide-react';
@@ -119,15 +117,11 @@ export default function Navbar({ user, onToggleSidebar, isSidebarOpen = true }: 
                 <button
                   onClick={onToggleSidebar}
                   type="button"
-                  className="hidden md:flex items-center justify-center p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors border border-transparent hover:border-slate-700"
-                  title={isSidebarOpen ? 'Retract side menu' : 'Expand side menu'}
-                  aria-label={isSidebarOpen ? 'Retract side menu' : 'Expand side menu'}
+                  className="hidden md:inline-flex items-center justify-center w-10 h-10 rounded-xl text-slate-300 hover:text-white bg-slate-800/40 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 transition-all shadow-sm"
+                  title={isSidebarOpen ? 'Collapse side menu' : 'Expand side menu'}
+                  aria-label={isSidebarOpen ? 'Collapse side menu' : 'Expand side menu'}
                 >
-                  {isSidebarOpen ? (
-                    <PanelLeftClose className="w-4 h-4 text-slate-400 hover:text-sky-400 transition-colors" />
-                  ) : (
-                    <PanelLeftOpen className="w-4 h-4 text-sky-400" />
-                  )}
+                  <Menu className="w-5 h-5 text-slate-300" />
                 </button>
               )}
 
@@ -136,7 +130,7 @@ export default function Navbar({ user, onToggleSidebar, isSidebarOpen = true }: 
                 type="button"
                 data-mobile-toggle="true"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="flex md:hidden items-center justify-center p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors border border-slate-800"
+                className="inline-flex md:hidden items-center justify-center w-10 h-10 rounded-xl text-slate-300 hover:text-white bg-slate-800/40 hover:bg-slate-800 border border-slate-700/60 transition-all"
                 aria-label="Toggle mobile menu"
               >
                 {mobileMenuOpen ? (

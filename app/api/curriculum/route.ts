@@ -29,10 +29,11 @@ export async function GET(req: Request) {
 
     if (requestedTier) {
       const upperTier = requestedTier.toUpperCase();
-      const tierOR = upperTier === 'SCHOOL'
-        ? [{ tier: 'SCHOOL' }, { tier: null }, { tier: 'school' }]
-        : [{ tier: upperTier }];
-      const andConditions: any[] = [{ OR: tierOR }];
+      const andConditions: any[] = [
+        upperTier === 'SCHOOL'
+          ? { tier: { in: ['SCHOOL', 'school'] } }
+          : { tier: upperTier },
+      ];
       if (requestedClass) {
         andConditions.push(buildClassFilter(requestedClass));
       }
@@ -43,7 +44,7 @@ export async function GET(req: Request) {
     } else if (enforceUserFilter && currentUser && (currentUser.role || '').toUpperCase() === 'STUDENT') {
       const studentTier = (currentUser.institutionType || 'SCHOOL').toUpperCase();
       if (studentTier === 'SCHOOL') {
-        const andConditions: any[] = [{ OR: [{ tier: 'SCHOOL' }, { tier: null }, { tier: 'school' }] }];
+        const andConditions: any[] = [{ tier: { in: ['SCHOOL', 'school'] } }];
         if (currentUser.class) {
           andConditions.push(buildClassFilter(currentUser.class));
         }
