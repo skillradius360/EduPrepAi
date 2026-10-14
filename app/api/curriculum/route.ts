@@ -16,6 +16,17 @@ export async function GET(req: Request) {
 
     let whereClause: any = {};
 
+    // Helper: build a class filter that matches "Class 10", "10", "class10" etc.
+    const buildClassFilter = (cls: string) => {
+      const num = cls.replace(/\D/g, ''); // extract digits e.g. "10"
+      return num
+        ? { OR: [
+            { class: { contains: cls, mode: 'insensitive' } },
+            { class: { contains: num, mode: 'insensitive' } },
+          ]}
+        : { class: { contains: cls, mode: 'insensitive' } };
+    };
+
     if (requestedTier) {
       const upperTier = requestedTier.toUpperCase();
       const tierOR = upperTier === 'SCHOOL'
@@ -23,7 +34,7 @@ export async function GET(req: Request) {
         : [{ tier: upperTier }];
       const andConditions: any[] = [{ OR: tierOR }];
       if (requestedClass) {
-        andConditions.push({ class: { equals: requestedClass, mode: 'insensitive' } });
+        andConditions.push(buildClassFilter(requestedClass));
       }
       if (requestedDegreeMajor) {
         andConditions.push({ degreeMajor: { contains: requestedDegreeMajor, mode: 'insensitive' } });
@@ -34,7 +45,7 @@ export async function GET(req: Request) {
       if (studentTier === 'SCHOOL') {
         const andConditions: any[] = [{ OR: [{ tier: 'SCHOOL' }, { tier: null }, { tier: 'school' }] }];
         if (currentUser.class) {
-          andConditions.push({ class: { equals: currentUser.class, mode: 'insensitive' } });
+          andConditions.push(buildClassFilter(currentUser.class));
         }
         whereClause = { AND: andConditions };
       } else if (studentTier === 'COLLEGE') {

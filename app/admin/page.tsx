@@ -95,10 +95,13 @@ export default function AdminDashboardPage() {
   const [selectedParentId, setSelectedParentId] = useState('');
   const [subjectTier, setSubjectTier] = useState<'SCHOOL' | 'COLLEGE' | 'COMPETITIVE'>('SCHOOL');
   const [subjectSchoolClass, setSubjectSchoolClass] = useState('Class 10');
+  const [subjectBoard, setSubjectBoard] = useState('CBSE');
   const [subjectDegreeMajor, setSubjectDegreeMajor] = useState('');
   const [subjectSyllabusType, setSubjectSyllabusType] = useState<'STANDARD' | 'UGC_MODEL' | 'CUSTOM_UNIVERSITY' | 'PYQ_OFFICIAL'>('STANDARD');
   const [subjectUniversityName, setSubjectUniversityName] = useState('');
   const [subjectCompetitiveExam, setSubjectCompetitiveExam] = useState('');
+  const [schoolClasses, setSchoolClasses] = useState<string[]>([]);
+  const [schoolBoards, setSchoolBoards] = useState<string[]>([]);
 
   const loadData = async () => {
     setLoading(true);
@@ -114,6 +117,19 @@ export default function AdminDashboardPage() {
       const cRes = await fetch('/api/curriculum');
       const cData = await cRes.json();
       if (cData.subjects) setCurriculum(cData.subjects);
+
+      const optRes = await fetch('/api/curriculum/options');
+      const optData = await optRes.json();
+      if (optData.options) {
+        if (optData.options.schoolClasses?.length) {
+          setSchoolClasses(optData.options.schoolClasses);
+          setSubjectSchoolClass(optData.options.schoolClasses[0]);
+        }
+        if (optData.options.schoolBoards?.length) {
+          setSchoolBoards(optData.options.schoolBoards);
+          setSubjectBoard(optData.options.schoolBoards[0]);
+        }
+      }
     } catch (err) {
       console.error('Error loading admin data:', err);
     } finally {
@@ -185,7 +201,7 @@ export default function AdminDashboardPage() {
           ? (subjectSyllabusType === 'CUSTOM_UNIVERSITY' ? (subjectUniversityName || 'University') : 'UGC')
           : subjectTier === 'COMPETITIVE'
           ? (subjectCompetitiveExam || 'National')
-          : 'CBSE';
+          : (subjectBoard || 'CBSE');
 
       const res = await fetch('/api/admin/curriculum', {
         method: 'POST',
@@ -631,18 +647,40 @@ export default function AdminDashboardPage() {
                       </div>
 
                       {subjectTier === 'SCHOOL' && (
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                            Class (e.g. Class 10, Class 11, Class 12)
-                          </label>
-                          <input
-                            type="text"
-                            value={subjectSchoolClass}
-                            onChange={(e) => setSubjectSchoolClass(e.target.value)}
-                            placeholder="e.g. Class 11, Class 12"
-                            className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none"
-                          />
-                        </div>
+                        <>
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                              Class / Grade
+                            </label>
+                            <select
+                              value={subjectSchoolClass}
+                              onChange={(e) => setSubjectSchoolClass(e.target.value)}
+                              className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none"
+                            >
+                              {schoolClasses.length > 0
+                                ? schoolClasses.map((cls) => <option key={cls} value={cls}>{cls}</option>)
+                                : ['Class 6','Class 7','Class 8','Class 9','Class 10','Class 11','Class 12'].map((cls) => (
+                                    <option key={cls} value={cls}>{cls}</option>
+                                  ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                              Board
+                            </label>
+                            <select
+                              value={subjectBoard}
+                              onChange={(e) => setSubjectBoard(e.target.value)}
+                              className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none"
+                            >
+                              {schoolBoards.length > 0
+                                ? schoolBoards.map((b) => <option key={b} value={b}>{b}</option>)
+                                : ['CBSE','ICSE','State Board'].map((b) => (
+                                    <option key={b} value={b}>{b}</option>
+                                  ))}
+                            </select>
+                          </div>
+                        </>
                       )}
 
                       {subjectTier === 'COMPETITIVE' && (
