@@ -354,7 +354,14 @@ export default function ProfileSettingsPage() {
                     <div className="bg-slate-950/70 border border-slate-800/80 rounded-xl p-3.5">
                       <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Target Examination</span>
                       <span className="text-sm font-bold text-white mt-1 block">
-                        {profile?.board ? `${profile.board} Board Exam` : 'School Board Examination'}
+                        {(() => {
+                          const cls = profile?.class || '';
+                          const num = parseInt(cls.replace(/\D/g, ''), 10);
+                          if (num <= 8) return 'Primary / Elementary Examination';
+                          if (num === 9 || num === 10) return 'Secondary Board Examination (Class 10)';
+                          if (num === 11 || num === 12) return 'Higher Secondary Examination (Class 12)';
+                          return profile?.board ? `${profile.board} Board Exam` : 'School Board Examination';
+                        })()}
                       </span>
                     </div>
                     <div className="bg-slate-950/70 border border-slate-800/80 rounded-xl p-3.5">

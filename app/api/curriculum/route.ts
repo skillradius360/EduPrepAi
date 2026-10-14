@@ -18,31 +18,33 @@ export async function GET(req: Request) {
 
     if (requestedTier) {
       const upperTier = requestedTier.toUpperCase();
-      if (upperTier === 'SCHOOL') {
-        whereClause.OR = [{ tier: 'SCHOOL' }, { tier: null }, { tier: 'school' }];
-      } else {
-        whereClause.tier = upperTier;
-      }
+      const tierOR = upperTier === 'SCHOOL'
+        ? [{ tier: 'SCHOOL' }, { tier: null }, { tier: 'school' }]
+        : [{ tier: upperTier }];
+      const andConditions: any[] = [{ OR: tierOR }];
       if (requestedClass) {
-        whereClause.class = { equals: requestedClass, mode: 'insensitive' };
+        andConditions.push({ class: { equals: requestedClass, mode: 'insensitive' } });
       }
       if (requestedDegreeMajor) {
-        whereClause.degreeMajor = { contains: requestedDegreeMajor, mode: 'insensitive' };
+        andConditions.push({ degreeMajor: { contains: requestedDegreeMajor, mode: 'insensitive' } });
       }
+      whereClause = andConditions.length === 1 ? andConditions[0] : { AND: andConditions };
     } else if (enforceUserFilter && currentUser && (currentUser.role || '').toUpperCase() === 'STUDENT') {
       const studentTier = (currentUser.institutionType || 'SCHOOL').toUpperCase();
       if (studentTier === 'SCHOOL') {
-        whereClause.OR = [{ tier: 'SCHOOL' }, { tier: null }, { tier: 'school' }];
+        const andConditions: any[] = [{ OR: [{ tier: 'SCHOOL' }, { tier: null }, { tier: 'school' }] }];
         if (currentUser.class) {
-          whereClause.class = { equals: currentUser.class, mode: 'insensitive' };
+          andConditions.push({ class: { equals: currentUser.class, mode: 'insensitive' } });
         }
+        whereClause = { AND: andConditions };
       } else if (studentTier === 'COLLEGE') {
-        whereClause.tier = 'COLLEGE';
+        const andConditions: any[] = [{ tier: 'COLLEGE' }];
         if (currentUser.degreeMajor) {
-          whereClause.degreeMajor = { contains: currentUser.degreeMajor, mode: 'insensitive' };
+          andConditions.push({ degreeMajor: { contains: currentUser.degreeMajor, mode: 'insensitive' } });
         }
+        whereClause = { AND: andConditions };
       } else if (studentTier === 'COMPETITIVE') {
-        whereClause.tier = 'COMPETITIVE';
+        whereClause = { tier: 'COMPETITIVE' };
       }
     }
 
